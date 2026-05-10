@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShaderKit — Real-Time 3D for the Web</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #080c14;
+      --surface:  #0d1220;
+      --border:   rgba(255,255,255,0.07);
+      --accent:   #3af0a2;
+      --accent2:  #3a8ff0;
+      --text:     #e8edf5;
+      --muted:    #5a6478;
+      --glow:     rgba(58,240,162,0.15);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Custom cursor ── */
+    #cursor {
+      position: fixed; top:0; left:0; z-index:9999;
+      width:10px; height:10px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      transition: transform 0.15s ease, opacity 0.2s;
+      mix-blend-mode: screen;
+    }
+    #cursor-ring {
+      position: fixed; top:0; left:0; z-index:9998;
+      width:36px; height:36px;
+      border: 1px solid rgba(58,240,162,0.4);
+      border-radius: 50%;
+      pointer-events: none;
+      transition: transform 0.35s ease, width 0.2s, height 0.2s;
+    }
+    body:has(a:hover) #cursor { transform: translate(-50%,-50%) scale(2.5); }
+    body:has(a:hover) #cursor-ring { width:60px; height:60px; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      display: flex; align-items:center; justify-content:space-between;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,12,20,0.7);
+      backdrop-filter: blur(16px);
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 18px;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo span { color: var(--accent); }
+    .nav-links { display:flex; gap:32px; }
+    .nav-links a {
+      font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
+      color: var(--muted); text-decoration:none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-badge {
+      font-size:11px; letter-spacing:0.08em;
+      border: 1px solid var(--accent);
+      color: var(--accent); padding: 6px 14px;
+      border-radius: 2px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-badge:hover { background: var(--glow); }
+
+    /* ── Hero ── */
+    #hero {
+      position: relative;
+      height: 100vh;
+      display: flex; align-items:center;
+      overflow: hidden;
+    }
+
+    /* The actual shader iframe */
+    #shader-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      border: none;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+    #shader-frame.loaded { opacity: 1; }
+
+    /* Dark gradient overlay so text is readable */
+    .hero-overlay {
+      position: absolute; inset:0;
+      background: linear-gradient(
+        105deg,
+        rgba(8,12,20,0.92) 0%,
+        rgba(8,12,20,0.7)  45%,
+        rgba(8,12,20,0.1)  100%
+      );
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative; z-index:2;
+      padding: 0 48px;
+      max-width: 640px;
+    }
+
+    .hero-eyebrow {
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:11px; letter-spacing:0.15em; text-transform:uppercase;
+      color: var(--accent); margin-bottom:24px;
+    }
+    .hero-eyebrow::before {
+      content:''; display:block;
+      width:24px; height:1px; background:var(--accent);
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: clamp(42px, 6vw, 80px);
+      line-height: 1.0; letter-spacing:-0.03em;
+      margin-bottom: 24px;
+    }
+    h1 em {
+      font-style:normal;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size:15px; line-height:1.7;
+      color: var(--muted); margin-bottom:40px;
+      font-family:'DM Mono', monospace;
+      font-weight:300;
+    }
+
+    .hero-actions { display:flex; gap:16px; flex-wrap:wrap; }
+
+    .btn-primary {
+      display:inline-flex; align-items:center; gap:8px;
+      background: var(--accent); color: #080c14;
+      font-family:'Syne',sans-serif; font-weight:700;
+      font-size:13px; letter-spacing:0.05em;
+      padding:14px 28px; border-radius:2px;
+      text-decoration:none;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 32px rgba(58,240,162,0.4);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      display:inline-flex; align-items:center; gap:8px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size:13px; letter-spacing:0.05em;
+      padding:14px 28px; border-radius:2px;
+      text-decoration:none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* ── Scroll hint ── */
+    .scroll-hint {
+      position:absolute; bottom:32px; left:48px; z-index:2;
+      display:flex; align-items:center; gap:12px;
+      font-size:10px; letter-spacing:0.15em; text-transform:uppercase;
+      color: var(--muted);
+      animation: fadeup 1s 1.5s both;
+    }
+    .scroll-hint::before {
+      content:'';
+      display:block; width:1px; height:40px;
+      background: linear-gradient(to bottom, transparent, var(--muted));
+      animation: scrollline 1.5s ease infinite;
+    }
+    @keyframes scrollline {
+      0%   { transform: scaleY(0); transform-origin: top; }
+      50%  { transform: scaleY(1); transform-origin: top; }
+      51%  { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+
+    /* ── Stats bar ── */
+    #stats {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 48px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .stat {
+      padding: 0 32px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:first-child { padding-left:0; }
+    .stat:last-child { border-right:none; }
+    .stat-val {
+      font-family:'Syne',sans-serif;
+      font-size:32px; font-weight:800;
+      color: var(--accent); letter-spacing:-0.02em;
+    }
+    .stat-label {
+      font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+      color: var(--muted); margin-top:4px;
+    }
+
+    /* ── Features ── */
+    #features {
+      padding: 120px 48px;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .section-label {
+      font-size:11px; letter-spacing:0.15em; text-transform:uppercase;
+      color: var(--accent); margin-bottom:16px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .section-label::after {
+      content:''; flex:1; height:1px;
+      background: var(--border);
+    }
+    .section-title {
+      font-family:'Syne',sans-serif;
+      font-size: clamp(28px,4vw,48px);
+      font-weight:800; letter-spacing:-0.02em;
+      margin-bottom:64px;
+      max-width:560px;
+    }
+
+    .features-grid {
+      display:grid;
+      grid-template-columns: repeat(3,1fr);
+      gap:1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .feature {
+      background: var(--bg);
+      padding:40px 36px;
+      transition: background 0.3s;
+    }
+    .feature:hover { background: var(--surface); }
+    .feature-icon {
+      width:40px; height:40px;
+      border: 1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:20px; font-size:18px;
+      border-radius:2px;
+    }
+    .feature h3 {
+      font-family:'Syne',sans-serif;
+      font-size:16px; font-weight:700;
+      margin-bottom:10px; letter-spacing:-0.01em;
+    }
+    .feature p {
+      font-size:13px; line-height:1.7;
+      color: var(--muted); font-weight:300;
+    }
+
+    /* ── Code snippet ── */
+    #code-section {
+      padding: 80px 48px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .code-inner {
+      max-width:1200px; margin:0 auto;
+      display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center;
+    }
+    .code-text .section-title { margin-bottom:16px; }
+    .code-text p {
+      font-size:14px; line-height:1.8;
+      color:var(--muted); margin-bottom:32px; font-weight:300;
+    }
+    pre {
+      background: #060910;
+      border: 1px solid var(--border);
+      border-radius:4px;
+      padding:28px;
+      font-family:'DM Mono',monospace;
+      font-size:12px;
+      line-height:1.8;
+      overflow-x:auto;
+      position:relative;
+    }
+    pre::before {
+      content:'// embed.js';
+      position:absolute; top:12px; right:16px;
+      font-size:10px; color:var(--muted); letter-spacing:0.08em;
+    }
+    .kw  { color:#3af0a2; }
+    .fn  { color:#3a8ff0; }
+    .str { color:#f0a23a; }
+    .cm  { color:#3a4458; font-style:italic; }
+
+    /* ── Use cases ── */
+    #usecases {
+      padding:120px 48px;
+      max-width:1200px; margin:0 auto;
+    }
+    .cases-grid {
+      display:grid;
+      grid-template-columns: repeat(2,1fr);
+      gap:24px; margin-top:64px;
+    }
+    .case {
+      border: 1px solid var(--border);
+      border-radius:4px;
+      padding:40px;
+      position:relative; overflow:hidden;
+      transition: border-color 0.3s;
+    }
+    .case:hover { border-color: rgba(58,240,162,0.3); }
+    .case-bg {
+      position:absolute; inset:0;
+      opacity:0; transition:opacity 0.4s;
+      background: radial-gradient(circle at 30% 50%, var(--glow), transparent 60%);
+    }
+    .case:hover .case-bg { opacity:1; }
+    .case-num {
+      font-family:'Syne',sans-serif;
+      font-size:48px; font-weight:800;
+      color: var(--border); letter-spacing:-0.04em;
+      margin-bottom:16px;
+    }
+    .case h3 {
+      font-family:'Syne',sans-serif;
+      font-size:20px; font-weight:700;
+      margin-bottom:10px;
+    }
+    .case p {
+      font-size:13px; line-height:1.7;
+      color:var(--muted); font-weight:300;
+    }
+    .case-tag {
+      display:inline-block; margin-top:20px;
+      font-size:10px; letter-spacing:0.12em; text-transform:uppercase;
+      color:var(--accent); border:1px solid rgba(58,240,162,0.3);
+      padding:4px 10px; border-radius:2px;
+    }
+
+    /* ── CTA ── */
+    #cta {
+      padding:120px 48px;
+      text-align:center;
+      background: var(--surface);
+      border-top:1px solid var(--border);
+      position:relative; overflow:hidden;
+    }
+    #cta::before {
+      content:'';
+      position:absolute; top:-200px; left:50%; transform:translateX(-50%);
+      width:600px; height:600px;
+      background: radial-gradient(circle, rgba(58,240,162,0.06), transparent 70%);
+      pointer-events:none;
+    }
+    #cta h2 {
+      font-family:'Syne',sans-serif;
+      font-size:clamp(32px,5vw,64px);
+      font-weight:800; letter-spacing:-0.03em;
+      margin-bottom:20px;
+    }
+    #cta p {
+      font-size:15px; color:var(--muted);
+      margin-bottom:48px; font-weight:300;
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding:32px 48px;
+      border-top:1px solid var(--border);
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    footer p {
+      font-size:12px; color:var(--muted);
+    }
+    footer a { color:var(--accent); text-decoration:none; }
+
+    /* ── Animations ── */
+    @keyframes fadeup {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .reveal {
+      opacity:0; transform:translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity:1; transform:none; }
+
+    /* ── Responsive ── */
+    @media (max-width:900px) {
+      nav { padding:16px 24px; }
+      .nav-links { display:none; }
+      .hero-content { padding:0 24px; }
+      #stats { grid-template-columns:repeat(2,1fr); padding:24px; gap:24px; }
+      .stat { border:none; padding:0; }
+      #features,#usecases,#usecases { padding:80px 24px; }
+      .features-grid { grid-template-columns:1fr; }
+      .code-inner { grid-template-columns:1fr; gap:32px; }
+      .cases-grid { grid-template-columns:1fr; }
+      #cta { padding:80px 24px; }
+      footer { flex-direction:column; gap:12px; text-align:center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Nav -->
+  <nav>
+    <a href="#" class="logo">Shader<span>Kit</span></a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#code-section">Docs</a>
+      <a href="#usecases">Use Cases</a>
+      <a href="https://github.com" target="_blank">GitHub</a>
+    </div>
+    <a href="#" class="nav-badge">View Demo →</a>
+  </nav>
+
+  <!-- Hero — shader iframe fills the background -->
+  <section id="hero">
+    <!--
+      TO EMBED YOUR ACTUAL PROJECT:
+      Replace the src below with your deployed project URL.
+      e.g. src="https://your-shader-project.vercel.app"
+      The iframe loads your full Three.js scene as the background.
+    -->
+    <iframe
+      id="shader-frame"
+      src="about:blank"
+      title="Live 3D shader background"
+      allowfullscreen
+    ></iframe>
+
+    <!-- Fallback animated background when iframe isn't connected -->
+    <canvas id="fallback-bg"></canvas>
+
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow reveal">Open Source · WebGL · GLSL</div>
+      <h1 class="reveal" style="animation-delay:0.1s">
+        Real-time 3D<br><em>shader engine</em><br>for the web.
+      </h1>
+      <p class="hero-sub reveal" style="animation-delay:0.2s">
+        Drop custom GLSL shaders, procedural terrain, Phong lighting,<br>
+        and post-processing bloom into any website in minutes.
+      </p>
+      <div class="hero-actions reveal" style="animation-delay:0.3s">
+        <a href="#code-section" class="btn-primary">Get Started →</a>
+        <a href="https://github.com" class="btn-secondary" target="_blank">
+          ★ Star on GitHub
+        </a>
+      </div>
+    </div>
+
+    <div class="scroll-hint">Scroll to explore</div>
+  </section>
+
+  <!-- Stats -->
+  <div id="stats">
+    <div class="stat reveal">
+      <div class="stat-val">60fps</div>
+      <div class="stat-label">Real-time rendering</div>
+    </div>
+    <div class="stat reveal">
+      <div class="stat-val">4</div>
+      <div class="stat-label">Built-in shader passes</div>
+    </div>
+    <div class="stat reveal">
+      <div class="stat-val">0</div>
+      <div class="stat-label">Dependencies beyond Three.js</div>
+    </div>
+    <div class="stat reveal">
+      <div class="stat-val">∞</div>
+      <div class="stat-label">Customisable uniforms</div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="section-label reveal">What's inside</div>
+    <h2 class="section-title reveal">
+      Everything you need to ship 3D on the web.
+    </h2>
+    <div class="features-grid">
+      <div class="feature reveal">
+        <div class="feature-icon">⛰</div>
+        <h3>Procedural Terrain</h3>
+        <p>FBM noise + domain warping generates infinite landscapes with height-based colour blending, fog, and specular water gloss.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-icon">💡</div>
+        <h3>Custom Phong Lighting</h3>
+        <p>Hand-written GLSL ambient, diffuse and specular — not Three.js built-ins. Full control over shininess, light colour and position per frame.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-icon">✦</div>
+        <h3>Bloom + Blur</h3>
+        <p>Separable Gaussian blur and multi-step bloom with configurable threshold and intensity. Toggle on/off at runtime. No Three.js postprocessing dependency.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-icon">🎥</div>
+        <h3>Free-fly Camera</h3>
+        <p>WASD + mouse look with smooth velocity damping. Pointer Lock API. Switchable to orbit mode. Drop it into any scene in two lines.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-icon">⚡</div>
+        <h3>Vite + ES Modules</h3>
+        <p>Instant HMR, tree-shaking, and zero config. GLSL loaded via fetch — no bundler plugin needed. Works with any modern framework.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-icon">🧪</div>
+        <h3>Fully Tested</h3>
+        <p>Vitest unit tests for every module. Camera, controls, post-processing passes — all verified without a browser or GPU. CI ready.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Code snippet -->
+  <section id="code-section">
+    <div class="code-inner">
+      <div class="code-text">
+        <div class="section-label reveal">Quick start</div>
+        <h2 class="section-title reveal">Add 3D to your site in minutes.</h2>
+        <p class="reveal">
+          Clone the repo, point the iframe at your canvas, and pipe your own
+          GLSL uniforms in from JavaScript. No WebGL boilerplate. No shader
+          compilation pipeline to configure. Just drop it in.
+        </p>
+        <a href="https://github.com" class="btn-primary reveal" target="_blank">Read the docs →</a>
+      </div>
+      <pre class="reveal"><span class="cm">// 1. Import the modules you need</span>
+<span class="kw">import</span> { App } <span class="kw">from</span> <span class="str">'./src/App.js'</span>;
+<span class="kw">import</span> { BloomPass } <span class="kw">from</span> <span class="str">'./src/postprocessing/BloomPass.js'</span>;
+
+<span class="cm">// 2. Mount to any canvas element</span>
+<span class="kw">const</span> canvas = document.<span class="fn">querySelector</span>(<span class="str">'#c'</span>);
+<span class="kw">const</span> app = <span class="kw">new</span> <span class="fn">App</span>(canvas);
+
+<span class="cm">// 3. Tune bloom live — no reload needed</span>
+app.post.bloomPass.threshold = <span class="str">0.5</span>;
+app.post.bloomPass.intensity  = <span class="str">1.8</span>;
+
+<span class="cm">// 4. Swap in your own GLSL shader</span>
+<span class="kw">const</span> mat = <span class="kw">await</span> PhongMaterial.<span class="fn">create</span>({
+  shininess: <span class="str">128</span>,
+  lightPos: <span class="kw">new</span> THREE.<span class="fn">Vector3</span>(<span class="str">50, 80, 50</span>),
+});
+yourMesh.material = mat.<span class="fn">getMaterial</span>();</pre>
+    </div>
+  </section>
+
+  <!-- Use cases -->
+  <section id="usecases">
+    <div class="section-label reveal">Who it's for</div>
+    <h2 class="section-title reveal">Built for web developers, not graphics engineers.</h2>
+    <div class="cases-grid">
+      <div class="case reveal">
+        <div class="case-bg"></div>
+        <div class="case-num">01</div>
+        <h3>Product Landing Pages</h3>
+        <p>Replace static hero images with a live 3D scene. Bloom on your product. Terrain as atmosphere. Camera that reacts to scroll position.</p>
+        <span class="case-tag">Like this page</span>
+      </div>
+      <div class="case reveal">
+        <div class="case-bg"></div>
+        <div class="case-num">02</div>
+        <h3>Portfolio Sites</h3>
+        <p>Procedural terrain as a background. Camera drifts slowly while visitors read. Your work floats above the landscape.</p>
+        <span class="case-tag">Creative dev</span>
+      </div>
+      <div class="case reveal">
+        <div class="case-bg"></div>
+        <div class="case-num">03</div>
+        <h3>3D Model Viewers</h3>
+        <p>Swap the terrain for your own geometry. Custom Phong shader lights it properly. Orbit controls for inspection. Bloom for drama.</p>
+        <span class="case-tag">E-commerce · Design</span>
+      </div>
+      <div class="case reveal">
+        <div class="case-bg"></div>
+        <div class="case-num">04</div>
+        <h3>Data Visualisation</h3>
+        <p>Map your data to terrain height and colour. Height-based colour grading is already built in. Connect your API to the amplitude uniform.</p>
+        <span class="case-tag">Analytics · Dashboards</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <h2 class="reveal">Start building.<br>It's open source.</h2>
+    <p class="reveal">Clone the repo, run npm install, and you're rendering in 30 seconds.</p>
+    <div class="hero-actions" style="justify-content:center">
+      <a href="https://github.com" class="btn-primary reveal" target="_blank">Clone on GitHub →</a>
+      <a href="#features" class="btn-secondary reveal">See all features</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>Built by Team C · Student shader project · May 2026</p>
+    <p>Powered by <a href="https://threejs.org" target="_blank">Three.js</a> + custom GLSL</p>
+  </footer>
+
+  <script>
+    // ── Cursor ──────────────────────────────────────────────────────
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursor-ring');
+    document.addEventListener('mousemove', e => {
+      cursor.style.transform = `translate(${e.clientX - 5}px, ${e.clientY - 5}px)`;
+      ring.style.transform   = `translate(${e.clientX - 18}px, ${e.clientY - 18}px)`;
+    });
+
+    // ── Shader iframe ───────────────────────────────────────────────
+    // To connect your real project:
+    //   1. Run: npm run build  (in your shader project folder)
+    //   2. Deploy to Vercel / Netlify / GitHub Pages
+    //   3. Replace 'about:blank' below with your deployed URL
+    //
+    // For local dev: change src to 'http://localhost:5173'
+    // but note browsers block iframe + pointer lock simultaneously,
+    // so the camera won't work inside the iframe — the terrain and
+    // bloom visuals still show perfectly as a background.
+
+    const frame = document.getElementById('shader-frame');
+    frame.src = 'https://your-project.vercel.app';
+    frame.addEventListener('load', () => frame.classList.add('loaded'));
+
+    // ── Fallback animated background (canvas) ───────────────────────
+    // Shows while iframe isn't connected — animated noise pattern
+    const cvs = document.getElementById('fallback-bg');
+    cvs.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+    const ctx = cvs.getContext('2d');
+    let t = 0;
+    function drawFallback() {
+      cvs.width  = cvs.offsetWidth;
+      cvs.height = cvs.offsetHeight;
+      const W = cvs.width, H = cvs.height;
+      ctx.fillStyle = '#080c14';
+      ctx.fillRect(0,0,W,H);
+      // Draw animated grid lines as atmosphere
+      ctx.strokeStyle = 'rgba(58,240,162,0.04)';
+      ctx.lineWidth = 1;
+      const spacing = 60;
+      const off = (t * 0.3) % spacing;
+      for (let x = -spacing+off; x < W+spacing; x += spacing) {
+        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+      }
+      for (let y = -spacing+off; y < H+spacing; y += spacing) {
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+      }
+      // Glow orbs
+      const orbs = [
+        { x:0.3, y:0.6, r:300, c:'rgba(58,240,162,0.04)' },
+        { x:0.7, y:0.4, r:250, c:'rgba(58,143,240,0.04)' },
+      ];
+      orbs.forEach(o => {
+        const grd = ctx.createRadialGradient(W*o.x,H*o.y,0,W*o.x,H*o.y,o.r);
+        grd.addColorStop(0, o.c); grd.addColorStop(1,'transparent');
+        ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+      });
+      t++;
+      requestAnimationFrame(drawFallback);
+    }
+    drawFallback();
+
+    // ── Scroll reveal ───────────────────────────────────────────────
+    const revealEls = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 60);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    revealEls.forEach(el => io.observe(el));
+
+    // Trigger hero reveals immediately
+    document.querySelectorAll('#hero .reveal').forEach((el,i) => {
+      setTimeout(() => el.classList.add('visible'), 200 + i*150);
+    });
+  </script>
+</body>
+</html>
