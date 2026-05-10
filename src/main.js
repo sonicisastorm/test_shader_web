@@ -1,8 +1,13 @@
-import { App } from 'shader-kit';
+import { App } from './App.js';
 
-const canvas = document.querySelector('#c');
-const app = new App(canvas);
-
-// Tune bloom from outside the library
-app.post.bloomPass.threshold = 0.5;
-app.post.bloomPass.intensity  = 2.0;
+const canvas = document.getElementById('shader-canvas');
+if (canvas) {
+  try {
+    window.__app = new App(canvas);
+    window.__app.post.bloomPass.threshold = 0.4;
+    window.__app.post.bloomPass.intensity  = 1.6;
+    console.log('[ShaderKit] App started OK');
+  } catch (e) {
+    console.error('[ShaderKit] Failed to start:', e);
+  }
+}
