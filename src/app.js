@@ -88,6 +88,6 @@ export class App {
     this.scene.destroy?.();
     this.post.dispose();
     this.renderer.dispose();
-    this.sizes.destroy();
+    this.sizes.destroy(); 
   }
 }

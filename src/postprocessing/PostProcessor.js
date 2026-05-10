@@ -13,7 +13,7 @@ import { BlurPass }       from './BlurPass.js';
  *   L — toggle blur
  *
  * Usage in App.js:
- *   const pp = new PostProcessor(renderer, width, height);
+ *   const pp = new PostProcessor(renderer, width, height); 
  *   // each frame — render scene into pp.sceneRT first, then:
  *   renderer.setRenderTarget(pp.sceneRT);
  *   renderer.render(scene, camera);

@@ -15,7 +15,7 @@
 //
 //  // Inside your render loop:
 //  terrain.update(clock.getElapsedTime());
-// =============================================================
+// ============================================================= 
 
 import * as THREE from 'three';
 import { TerrainMaterial } from '../rendering/TerrainMaterial.js';

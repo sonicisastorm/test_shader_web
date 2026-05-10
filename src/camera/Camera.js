@@ -13,7 +13,7 @@ export class Camera {
     this.instance.position.copy(position ?? new THREE.Vector3(0, 4, 12));
     this.instance.lookAt(0, 0, 0);
     this._onResize  = this._onResize.bind(this);
-    window.addEventListener('resize', this._onResize);
+    window.addEventListener('resize', this._onResize); 
   }
   _onResize() {
     this.instance.aspect = window.innerWidth / window.innerHeight;

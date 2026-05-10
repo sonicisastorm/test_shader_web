@@ -15,7 +15,7 @@ import * as THREE from 'three';
 export default class ShaderMaterial {
     /**
      * @param {object} options
-     * @param {string} options.vertexShader   – GLSL vertex source string
+     * @param {string} options.vertexShader   – GLSL vertex source string 
      * @param {string} options.fragmentShader – GLSL fragment source string
      * @param {object} [options.uniforms={}]  – Three.js uniform map
      * @param {boolean} [options.wireframe=false]

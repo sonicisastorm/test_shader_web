@@ -5,7 +5,7 @@
 //
 //  Public API
 //  ----------
-//  float simplex2(vec2 v)              -> [-1, 1]
+//  float simplex2(vec2 v)              -> [-1, 1] 
 //  float simplex3(vec3 v)              -> [-1, 1]
 //  float fbm2(vec2 p, int octaves)     -> [~-1, 1]  (normalised)
 //  float fbm3(vec3 p, int octaves)     -> [~-1, 1]

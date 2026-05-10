@@ -5,4 +5,4 @@
 uniform float uTime;        // seconds since start
 uniform vec2  uResolution;  // viewport size in pixels
 uniform vec3  uLightPos;    // world-space directional light position
-uniform vec3  uCameraPos;   // world-space camera position
+uniform vec3  uCameraPos;   // world-space camera position 

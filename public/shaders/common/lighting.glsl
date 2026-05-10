@@ -41,7 +41,7 @@ vec3 specularLight(vec3 L, vec3 V, vec3 N, vec3 lightColor, float shininess, flo
 // L         = direction toward the light (not necessarily normalized)
 // V         = direction toward the camera (not necessarily normalized)
 // N         = surface normal (not necessarily normalized)
-// lightColor = light RGB (each component 0–1)
+// lightColor = light RGB (each component 0–1) 
 // albedo     = surface base color
 // ka, kd, ks = material coefficients for ambient, diffuse, specular
 // shininess  = specular exponent (e.g. 16, 32, 64, 128)

@@ -15,7 +15,7 @@ const EXTRACT = `
   }
 `;
 
-const COMPOSITE = `
+const COMPOSITE = ` 
   uniform sampler2D uTexture;
   uniform sampler2D uBloom;
   uniform vec2      uResolution;

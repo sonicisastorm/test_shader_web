@@ -9,7 +9,7 @@
 //  DO NOT redeclare any of the above.
 //
 //  Concatenate simplex.glsl + perlin.glsl before this file so
-//  simplex2(), fbm2(), ridgeFbm(), fbmWarp() are in scope.
+//  simplex2(), fbm2(), ridgeFbm(), fbmWarp() are in scope. 
 // =============================================================
 
 // Custom uniforms only

@@ -16,7 +16,7 @@ import * as THREE from 'three';
 
 export default class Lights {
     /**
-     * @param {object} [options]
+     * @param {object} [options] 
      * @param {THREE.Vector3} [options.lightPos]     – world-space light position
      * @param {THREE.Vector3} [options.lightColor]   – directional light RGB (0–1)
      * @param {THREE.Vector3} [options.ambientColor] – ambient light RGB (0–1)

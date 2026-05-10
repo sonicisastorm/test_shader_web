@@ -15,7 +15,7 @@ import ShaderMaterial from './ShaderMaterial.js';
 const SHADER_PATHS = {
     lighting: '/shaders/common/lighting.glsl',
     vertex:   '/shaders/phong/vertex.glsl',
-    fragment: '/shaders/phong/fragment.glsl',
+    fragment: '/shaders/phong/fragment.glsl', 
 };
 
 /**

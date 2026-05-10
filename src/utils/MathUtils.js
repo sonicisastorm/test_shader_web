@@ -14,7 +14,7 @@ import * as THREE from 'three';
  *
  * Three.js handles this automatically when using ShaderMaterial,
  * but this helper is available if manual computation is ever needed
- * (e.g. for CPU-side normal transforms or custom renderers).
+ * (e.g. for CPU-side normal transforms or custom renderers). 
  *
  * @param {THREE.Matrix4} modelMatrix – the object's world transform
  * @returns {THREE.Matrix3} – the 3×3 normal matrix

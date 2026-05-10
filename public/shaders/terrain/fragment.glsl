@@ -9,7 +9,7 @@
 //    0.42 – 0.62  lowland grass
 //    0.62 – 0.78  highland / rock
 //    0.78 – 0.90  bare rock
-//    0.90 – 1.00  snow cap
+//    0.90 – 1.00  snow cap 
 //
 //  Uniforms (set via TerrainMaterial.js)
 //  ----------

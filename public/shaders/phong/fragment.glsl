@@ -6,7 +6,7 @@
 // the vertex shader, then computes Blinn-Phong lighting
 // (ambient + diffuse + specular) per pixel.
 //
-// This shader serves as a standalone reference / test.
+// This shader serves as a standalone reference / test. 
 // In production, Teammate A's terrain fragment shader will
 // use its own height-based colors with inline lighting.
 // ============================================================

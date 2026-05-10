@@ -15,7 +15,7 @@ export class SceneManager {
     this._viewMode = 0;
     this._initPhongMaterial();
     this._onKeyDown = this._onKeyDown.bind(this);
-    window.addEventListener('keydown', this._onKeyDown);
+    window.addEventListener('keydown', this._onKeyDown); 
 
     this._terrain = null;
     this._initTerrain();

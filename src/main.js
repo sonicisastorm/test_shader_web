@@ -10,4 +10,4 @@ if (canvas) {
   } catch (e) {
     console.error('[ShaderKit] Failed to start:', e);
   }
-}
+} 

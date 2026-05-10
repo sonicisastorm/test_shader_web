@@ -15,7 +15,7 @@ import * as THREE from 'three';
 export class EffectComposer {
   constructor(renderer, width, height) {
     this.renderer = renderer;
-    this._passes  = [];
+    this._passes  = []; 
     const opts = {
       minFilter: THREE.LinearFilter,
       magFilter: THREE.LinearFilter,

@@ -8,7 +8,7 @@
 //
 // Uses THREE.ShaderMaterial, so built-in attributes (position,
 // normal, uv) and uniforms (modelMatrix, viewMatrix,
-// projectionMatrix, normalMatrix, cameraPosition) are
+// projectionMatrix, normalMatrix, cameraPosition) are 
 // auto-injected by Three.js — DO NOT redeclare them.
 // ============================================================
 

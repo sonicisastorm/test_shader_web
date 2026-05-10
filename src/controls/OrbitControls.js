@@ -12,7 +12,7 @@ import * as THREE from 'three';
  */
 export class OrbitControls {
   constructor(camera, domElement, {
-    target            = new THREE.Vector3(0, 0, 0),
+    target            = new THREE.Vector3(0, 0, 0), 
     radius            = 12,
     minRadius         = 2,
     maxRadius         = 100,

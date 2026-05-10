@@ -13,7 +13,7 @@ export class Time extends THREE.EventDispatcher {
     this.delta   = 0;
   }
   tick() {
-    const now    = performance.now();
+    const now    = performance.now(); 
     this.delta   = (now - this.current) / 1000;
     this.elapsed = (now - this.start)   / 1000;
     this.current = now;

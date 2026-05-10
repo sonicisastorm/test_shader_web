@@ -12,7 +12,7 @@ const _HALF_PI = Math.PI / 2;
  *   Shift       — 3× speed sprint
  *   Mouse drag  — look (requires pointer lock — click canvas first)
  *
- * Call update(dt) every frame.
+ * Call update(dt) every frame. 
  */
 export class CameraController {
   constructor(camera, domElement, {

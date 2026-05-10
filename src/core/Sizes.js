@@ -11,7 +11,7 @@ export class Sizes extends THREE.EventDispatcher {
     this.height     = window.innerHeight;
     this.pixelRatio = 1;
     this._onResize  = this._onResize.bind(this);
-    window.addEventListener('resize', this._onResize);
+    window.addEventListener('resize', this._onResize); 
   }
   _onResize() {
     this.width      = window.innerWidth;

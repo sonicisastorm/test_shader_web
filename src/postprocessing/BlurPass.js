@@ -14,7 +14,7 @@ const FRAG = `
     float w[5]; w[0]=0.2270270; w[1]=0.1945946; w[2]=0.1216216; w[3]=0.0540540; w[4]=0.0162162;
     vec3 col = texture2D(uTexture, uv).rgb * w[0];
     for (int i = 1; i < 5; i++) {
-      col += texture2D(uTexture, uv + dir * float(i)).rgb * w[i];
+      col += texture2D(uTexture, uv + dir * float(i)).rgb * w[i]; 
       col += texture2D(uTexture, uv - dir * float(i)).rgb * w[i];
     }
     gl_FragColor = vec4(col, 1.0);

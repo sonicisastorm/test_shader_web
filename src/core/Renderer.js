@@ -13,7 +13,7 @@ export class Renderer {
    * @param {import('./Sizes').Sizes} opts.sizes
    */
   constructor({ canvas, sizes }) {
-    this.sizes = sizes;
+    this.sizes = sizes; 
     this.instance = new THREE.WebGLRenderer({
       canvas,
       antialias: true,

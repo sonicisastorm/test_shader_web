@@ -17,7 +17,7 @@
 /**
  * Fast 2-D hash — maps (ix, iy) integers to a float in [0, 1).
  * @param {number} ix
- * @param {number} iy
+ * @param {number} iy 
  * @returns {number}
  */
 function hash2(ix, iy) {
