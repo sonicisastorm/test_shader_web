@@ -12,7 +12,7 @@ const _HALF_PI = Math.PI / 2;
  *   Shift       — 3× speed sprint
  *   Mouse drag  — look (requires pointer lock — click canvas first)
  *
- * Call update(dt) every frame. 
+ * Call update(dt) every frame.
  */
 export class CameraController {
   constructor(camera, domElement, {
@@ -42,10 +42,11 @@ export class CameraController {
     this._onMouseMove         = this._onMouseMove.bind(this);
     this._onPointerLockChange = this._onPointerLockChange.bind(this);
 
-    document.addEventListener('keydown',            this._onKeyDown);
-    document.addEventListener('keyup',              this._onKeyUp);
-    document.addEventListener('mousemove',          this._onMouseMove);
-    document.addEventListener('pointerlockchange',  this._onPointerLockChange);
+    document.addEventListener('keydown',           this._onKeyDown);
+    document.addEventListener('keyup',             this._onKeyUp);
+    document.addEventListener('mousemove',         this._onMouseMove);
+    document.addEventListener('pointerlockchange', this._onPointerLockChange);
+
     domElement.addEventListener('click', () => domElement.requestPointerLock());
   }
 
@@ -54,6 +55,11 @@ export class CameraController {
 
   _onPointerLockChange() {
     this._pointerLocked = document.pointerLockElement === this.domElement;
+    if (!this._pointerLocked) {
+      // Clear all held keys and kill velocity so movement stops instantly on Escape
+      Object.keys(this._keys).forEach(k => this._keys[k] = false);
+      this._velocity.set(0, 0, 0);
+    }
   }
 
   _onMouseMove(e) {
@@ -66,6 +72,12 @@ export class CameraController {
   }
 
   update(dt) {
+    // Do nothing if pointer is not locked — prevents WASD working after Escape
+    if (!this._pointerLocked) {
+      this._velocity.set(0, 0, 0);
+      return;
+    }
+
     const k   = this._keys;
     const spd = (k.ShiftLeft || k.ShiftRight) ? this.moveSpeed * 3 : this.moveSpeed;
 
@@ -74,6 +86,7 @@ export class CameraController {
       (k.KeyE ? 1 : 0) - (k.KeyQ ? 1 : 0),
       (k.KeyS ? 1 : 0) - (k.KeyW ? 1 : 0),
     );
+
     if (this._dir.lengthSq() > 0) this._dir.normalize();
 
     const worldDir = this._dir.clone().applyQuaternion(this.camera.quaternion);
